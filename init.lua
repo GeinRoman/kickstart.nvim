@@ -458,6 +458,7 @@ require('lazy').setup({
                     end,
                     capabilities = capabilities,
                 },
+
                 -- gopls = {},
                 -- pyright = {},
                 -- rust_analyzer = {},
@@ -801,3 +802,11 @@ require('lazy').setup({
         },
     },
 })
+
+-- LSP for qml language
+-- --build-dir C:/user_programs/qt/5.12.12/msvc2017_64
+vim.lsp.config['qmlls'] = {
+    -- Command and arguments to start the server.
+    cmd = { 'qmlls' },
+}
+vim.lsp.enable 'qmlls'
