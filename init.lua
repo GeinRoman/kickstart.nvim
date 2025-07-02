@@ -25,6 +25,14 @@ vim.o.showmode = false
 vim.o.breakindent = true
 
 -- Save undo history
+vim.o.swapfile = false
+vim.o.backup = false
+--if next line is not working check whether or not print(os.getenv("OS")) prints "Windows_NT"
+if os.getenv('OS') == 'Windows_NT' then
+    vim.o.undodir = os.getenv('UserProfile') .. '/.vim/undodir'
+else
+    vim.o.undodir = os.getenv('HOME') .. '/.vim/undodir'
+end
 vim.o.undofile = true
 
 -- Case-insensitive searching UNLESS \C or one or more capital letters in the search term
@@ -572,7 +580,7 @@ require('lazy').setup({
                 -- Disable "format_on_save lsp_fallback" for languages that don't
                 -- have a well standardized coding style. You can add additional
                 -- languages here or re-enable it for the disabled ones.
-                local disable_filetypes = { c = true, cpp = true }
+                local disable_filetypes = { c = true }
                 if disable_filetypes[vim.bo[bufnr].filetype] then
                     return nil
                 else
@@ -839,8 +847,13 @@ require('lazy').setup({
 
 -- LSP for qml language
 -- --build-dir C:/user_programs/qt/5.12.12/msvc2017_64
+-- local util = require('lspconfig.util')
 vim.lsp.config['qmlls'] = {
     -- Command and arguments to start the server.
-    cmd = { 'qmlls' },
+    cmd = {
+        'qmlls',
+        -- , '--build-dir', 'build', '--doc-dir', 'C:/user_programs/qt/5.12.12/mingw73_64/doc'
+    },
+    -- root_dir = util.root_pattern('CMakeLists.txt', '.git'),
 }
 vim.lsp.enable('qmlls')
