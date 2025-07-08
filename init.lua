@@ -105,7 +105,7 @@ end, { desc = 'Goto previous diagnostic' })
 -- is not what someone will guess without a bit more experience.
 --
 -- NOTE: This won't work in all terminal emulators/tmux/etc. Try your own mapping
--- TODO terminal mode
+-- TODO: terminal mode
 -- or just use <C-\><C-n> to exit terminal mode
 -- vim.keymap.set('t', '<Esc><Esc>', '<C-\\><C-n>', { desc = 'Exit terminal mode' })
 
@@ -161,7 +161,8 @@ vim.keymap.set('n', '<M-+>', ':vertical resize +2<CR>', { desc = 'Close split', 
 vim.keymap.set('n', '<M-_>', ':vertical resize -2<CR>', { desc = 'Close split', silent = true })
 
 --going back to file explorer
-vim.keymap.set('n', '<leader>v', vim.cmd.Ex, { desc = 'Goto file explorer' })
+--commented since I use oil as file explorer
+-- vim.keymap.set('n', '<leader>v', vim.cmd.Ex, { desc = 'Goto file explorer' })
 
 --  See `:help wincmd` for a list of all window commands
 -- NOTE: Some terminals have colliding keymaps or are not able to send distinct keycodes
@@ -759,6 +760,9 @@ require('lazy').setup({
     { -- Collection of various small independent plugins/modules
         'echasnovski/mini.nvim',
         config = function()
+            --mini icons
+            require('mini.icons').setup()
+
             -- Better Around/Inside textobjects
             --
             -- Examples:
@@ -784,7 +788,7 @@ require('lazy').setup({
             --  and try some other statusline plugin
             local statusline = require('mini.statusline')
             -- set use_icons to true if you have a Nerd Font
-            statusline.setup({ use_icons = vim.g.have_nerd_font })
+            statusline.setup({ use_icons = true })
 
             -- You can configure sections.fasdjfl in the statusline by overriding their
             -- default behavior. For example, here we set the section for
