@@ -85,8 +85,8 @@ vim.o.confirm = true
 -- NOTE: [[ Basic Keymaps ]]
 
 -- fuck out of insert mode
-vim.keymap.set('i', 'jk', '<Esc>')
-vim.keymap.set('i', 'kj', '<Esc>')
+vim.keymap.set('i', 'jk', '<Esc>', { noremap = true })
+vim.keymap.set('i', 'kj', '<Esc>', { noremap = true })
 -- Clear highlights on search when pressing <Esc> in normal mode
 --  See `:help hlsearch`
 vim.keymap.set('n', '<Esc>', '<cmd>nohlsearch<CR>')
@@ -174,35 +174,37 @@ vim.keymap.set('n', '<M-_>', ':vertical resize -2<CR>', { desc = 'Close split', 
 -- Changing all occurrences of 'word1' in line to 'word2'
 vim.keymap.set('n', '<leader>rl', function()
     local cur_word = vim.fn.expand('<cword>') -- Get word under cursor
-    local new_word = vim.fn.input('Remap in line to: ', cur_word) -- Prompt with default value
-    if new_word == '' or new_word == cur_word then
-        return -- Do nothing if cancelled or unchanged
-    end
-    -- Get current line
-    local line_num = vim.api.nvim_win_get_cursor(0)[1]
-    local line = vim.api.nvim_buf_get_lines(0, line_num - 1, line_num, false)[1]
-    -- Escape Lua pattern characters in current word
-    local pattern = vim.pesc(cur_word)
-    -- Replace all occurrences
-    local new_line = line:gsub(pattern, new_word)
-    -- Set the new line
-    vim.api.nvim_buf_set_lines(0, line_num - 1, line_num, false, { new_line })
+    vim.ui.input({ prompt = "Remap '" .. cur_word .. "' in line to: ", default = cur_word }, function(new_word)
+        if new_word == '' or new_word == cur_word or new_word == nil then
+            return -- Do nothing if cancelled or unchanged
+        end
+        -- Get current line
+        local line_num = vim.api.nvim_win_get_cursor(0)[1]
+        local line = vim.api.nvim_buf_get_lines(0, line_num - 1, line_num, false)[1]
+        -- Escape Lua pattern characters in current word
+        local pattern = vim.pesc(cur_word)
+        -- Replace all occurrences
+        local new_line = line:gsub(pattern, new_word)
+        -- Set the new line
+        vim.api.nvim_buf_set_lines(0, line_num - 1, line_num, false, { new_line })
+    end) -- Prompt with default value
 end, { desc = 'Replace word in line', noremap = true, silent = true })
 
 vim.keymap.set('n', '<leader>rf', function()
     local cur_word = vim.fn.expand('<cword>') -- Get word under cursor
-    local new_word = vim.fn.input('Remap in line to: ', cur_word) -- Prompt with default value
-    if new_word == '' or new_word == cur_word then
-        return -- Do nothing if cancelled or unchanged
-    end
-    local buf = vim.api.nvim_get_current_buf()
-    local lines = vim.api.nvim_buf_get_lines(buf, 0, -1, false)
+    vim.ui.input({ prompt = "Remap '" .. cur_word .. "' in file to: ", default = cur_word }, function(new_word)
+        if new_word == '' or new_word == cur_word or new_word == nil then
+            return -- Do nothing if cancelled or unchanged
+        end
+        local buf = vim.api.nvim_get_current_buf()
+        local lines = vim.api.nvim_buf_get_lines(buf, 0, -1, false)
 
-    for i, line in ipairs(lines) do
-        lines[i] = line:gsub(vim.pesc(cur_word), new_word)
-    end
+        for i, line in ipairs(lines) do
+            lines[i] = line:gsub(vim.pesc(cur_word), new_word)
+        end
 
-    vim.api.nvim_buf_set_lines(buf, 0, -1, false, lines)
+        vim.api.nvim_buf_set_lines(buf, 0, -1, false, lines)
+    end) -- Prompt with default value
 end, { desc = 'Replace word in file', noremap = true, silent = true })
 -- [[ Basic Autocommands ]]
 --  See `:help lua-guide-autocommands`
@@ -884,75 +886,4 @@ vim.lsp.config['qmlls'] = {
 }
 vim.lsp.enable('qmlls')
 
-vim.keymap.set('n', '<leader>cp', function()
-    local cur_word = vim.fn.expand('<cword>') -- Get word under cursor
-
-    local row, col = unpack(vim.api.nvim_win_get_cursor(0))
-    local line = vim.api.nvim_get_current_line()
-    local before_cursor = line:sub(1, col)
-    local words = {}
-    for w in before_cursor:gmatch('%w+') do
-        table.insert(words, w)
-    end
-    local prev_word = words[#words - 1] or ''
-
-    -- Get current line
-    local line_num = vim.api.nvim_win_get_cursor(0)[1]
-    local line = vim.api.nvim_buf_get_lines(0, line_num - 1, line_num, false)[1]
-    local new_line = '    Q_PROPERTY(' .. prev_word .. ' ' .. cur_word .. ' READ ' .. cur_word .. ' NOTIFY ' .. cur_word .. 'Changed)'
-    vim.api.nvim_buf_set_lines(0, line_num - 1, line_num, false, { new_line })
-
-    local buf = vim.api.nvim_get_current_buf()
-    local lines = vim.api.nvim_buf_get_lines(buf, 0, -1, false)
-
-    local insert_in_public = nil
-    local insert_in_signals = nil
-    local insert_in_private = nil
-
-    for i, line in ipairs(lines) do
-        local trimmed = vim.trim(line)
-        if trimmed == 'public:' then
-            insert_in_public = i -- insert after this, unless interrupted
-        end
-    end
-
-    for i, line in ipairs(lines) do
-        local trimmed = vim.trim(line)
-        if trimmed == 'signals:' then
-            insert_in_signals = i
-        end
-    end
-
-    for i, line in ipairs(lines) do
-        local trimmed = vim.trim(line)
-        if trimmed == 'private:' then
-            insert_in_private = i
-        end
-    end
-
-    local added_lines = 0
-    if insert_in_public then
-        local new_func = '    ' .. prev_word .. ' ' .. cur_word .. '() const;'
-        vim.api.nvim_buf_set_lines(buf, insert_in_public, insert_in_public, false, { new_func })
-        new_func = '    void set' .. cur_word:gsub('^%l', string.upper) .. '(const ' .. prev_word .. ' &);'
-        vim.api.nvim_buf_set_lines(buf, insert_in_public + 1, insert_in_public + 1, false, { new_func })
-        added_lines = added_lines + 2
-    else
-        print("Could not find 'public:' section to insert into.")
-    end
-
-    if insert_in_signals then
-        local new_func = '    void ' .. cur_word .. 'Changed();'
-        vim.api.nvim_buf_set_lines(buf, insert_in_signals + added_lines, insert_in_signals + added_lines, false, { new_func })
-        added_lines = added_lines + 1
-    else
-        print("Could not find 'signals:' section to insert into.")
-    end
-
-    if insert_in_private then
-        local new_func = '    ' .. prev_word .. ' m_' .. cur_word .. ';'
-        vim.api.nvim_buf_set_lines(buf, insert_in_private + added_lines, insert_in_private + added_lines, false, { new_func })
-    else
-        print("Could not find 'private:' section to insert into.")
-    end
-end, { desc = 'Create Q_Property', noremap = true, silent = true })
+require('keymaps')
