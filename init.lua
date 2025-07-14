@@ -886,4 +886,8 @@ vim.lsp.config['qmlls'] = {
 }
 vim.lsp.enable('qmlls')
 
-require('keymaps')
+-- open or create file to store current project's objectives
+vim.keymap.set('n', '<leader>ct', function()
+    local tasks_file = vim.fn.getcwd() .. '/tasks.md'
+    vim.cmd('edit ' .. tasks_file)
+end, { desc = 'Open tasks.md in current directory' })
