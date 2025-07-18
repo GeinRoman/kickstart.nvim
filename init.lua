@@ -160,6 +160,9 @@ vim.keymap.set('n', '<M-->', ':vertical resize -2<CR>', { desc = 'Close split', 
 vim.keymap.set('n', '<M-+>', ':vertical resize +2<CR>', { desc = 'Close split', silent = true })
 vim.keymap.set('n', '<M-_>', ':vertical resize -2<CR>', { desc = 'Close split', silent = true })
 
+--quickfix list navigation
+vim.keymap.set('n', '<M-s>', '<Cmd>cprev<CR>', { desc = 'prev in quickfix list' })
+vim.keymap.set('n', '<M-d>', '<Cmd>cnext<CR>', { desc = 'next in quickfix list' })
 --going back to file explorer
 --commented since I use oil as file explorer
 -- vim.keymap.set('n', '<leader>v', vim.cmd.Ex, { desc = 'Goto file explorer' })

@@ -153,9 +153,7 @@ local createQproperty = function()
             prompt = prompt .. 'in ' .. fileName .. '? [Y]es/[N]o: '
             vim.ui.input({ prompt = prompt }, function(second_answer)
                 if second_answer == 'Y' or second_answer == 'y' then
-                    createPropertyImplimentation(true, fileName, type, name)
-                elseif second_answer == 'N' or second_answer == 'n' then
-                    createPropertyImplimentation(false, fileName, type, name)
+                    createPropertyImplimentation(hasSetter, fileName, type, name)
                 else
                     return
                 end
