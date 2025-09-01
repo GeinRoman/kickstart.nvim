@@ -52,7 +52,7 @@ vim.o.signcolumn = 'yes'
 vim.o.updatetime = 250
 
 -- Decrease mapped sequence wait time
-vim.o.timeoutlen = 300
+vim.o.timeoutlen = 700
 
 -- Configure how new splits should be opened
 vim.o.splitright = true
@@ -728,20 +728,29 @@ require('lazy').setup({
         -- change the command in the config to whatever the name of that colorscheme is.
         --
         -- If you want to see what colorschemes are already installed, you can use `:Telescope colorscheme`.
-        'folke/tokyonight.nvim',
+        -- 'gbprod/nord.nvim',
+        -- 'folke/tokyonight.nvim',
+        -- 'AlexvZyl/nordic.nvim',
+        -- 'rebelot/kanagawa.nvim',
+        'ellisonleao/gruvbox.nvim',
         priority = 1000, -- Make sure to load this before all the other start plugins.
         config = function()
             ---@diagnostic disable-next-line: missing-fields
-            require('tokyonight').setup({
-                styles = {
-                    comments = { italic = false }, -- Disable italics in comments
-                },
+            -- require('tokyonight').setup({
+            -- require('nordic').setup({
+            -- require('kanagawa').setup({
+            require('gruvbox').setup({
+                -- styles = {
+                --     comments = { italic = false }, -- Disable italics in comments
+                -- },
+                -- theme = 'wave',
             })
 
             -- Load the colorscheme here.
             -- Like many other themes, this one has different styles, and you could load
             -- any other, such as 'tokyonight-storm', 'tokyonight-moon', or 'tokyonight-day'.
-            vim.cmd.colorscheme('tokyonight-night')
+            vim.cmd.colorscheme('gruvbox')
+            vim.o.background = 'light'
         end,
     },
 

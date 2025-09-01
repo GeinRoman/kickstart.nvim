@@ -124,7 +124,38 @@ local createPropertyImplimentation = function(hasSetter, fileName, type, name)
 end
 
 local createQproperty = function()
-    local type = vim.fn.expand('<cword>') -- Get word under cursor
+    -- local type = vim.fn.expand('<cword>') -- Get word under cursor
+
+    local mode = vim.fn.mode()
+    if mode ~= 'v' and mode ~= 'V' and mode ~= '\22' then
+        print('not v')
+        return
+    end
+
+    local _, csrow, cscol, _ = unpack(vim.fn.getpos('v'))
+    local _, cerow, cecol, _ = unpack(vim.fn.getpos('.'))
+
+    -- Make sure start is before end
+    if csrow > cerow or (csrow == cerow and cscol > cecol) then
+        csrow, cerow = cerow, csrow
+        cscol, cecol = cecol, cscol
+    end
+
+    local lines = vim.fn.getline(csrow, cerow)
+
+    -- Trim the first and last lines if necessary
+    if #lines == 0 then
+        print('empty lines')
+        return
+    end
+
+    lines[1] = string.sub(lines[1], cscol)
+    if #lines > 1 then
+        lines[#lines] = string.sub(lines[#lines], 1, cecol)
+    end
+
+    local type = table.concat(lines, '\n')
+    print(type)
 
     vim.ui.input({ prompt = "Create Q_Property of type '" .. type .. "' and name: " }, function(name)
         if name == nil then
@@ -162,4 +193,4 @@ local createQproperty = function()
     end)
 end
 
-vim.keymap.set('n', '<leader>cp', createQproperty, { desc = 'Create Q_Property', noremap = true })
+vim.keymap.set('v', '<leader>cp', createQproperty, { desc = 'Create Q_Property', noremap = true })
