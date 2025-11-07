@@ -48,6 +48,11 @@ local getLineIndexToInsert = function(scope)
     end
 end
 
+local function isPrimitiveType(t)
+    local primitives = { int = true, double = true, bool = true }
+    return primitives[t] or false
+end
+
 local insertLines = function(name, type, includeSetter, includeWriteBlock)
     local buf = vim.api.nvim_get_current_buf()
     local capitalName = name:gsub('^%l', string.upper)
@@ -64,7 +69,13 @@ local insertLines = function(name, type, includeSetter, includeWriteBlock)
         new_line = type .. ' ' .. name .. '() const;'
         vim.api.nvim_buf_set_lines(buf, pub_index, pub_index, false, { new_line })
         if includeSetter then
-            new_line = 'void set' .. capitalName .. '(const ' .. type .. '& new' .. capitalName .. ');'
+            local setterParam
+            if isPrimitiveType(type) then
+                setterParam = type .. ' new' .. capitalName
+            else
+                setterParam = 'const ' .. type .. '& new' .. capitalName
+            end
+            new_line = 'void set' .. capitalName .. '(' .. setterParam .. ');'
             vim.api.nvim_buf_set_lines(buf, pub_index + 1, pub_index + 1, false, { new_line })
         end
 
@@ -78,7 +89,7 @@ local insertLines = function(name, type, includeSetter, includeWriteBlock)
     end
 end
 
-local createPropertyImplimentation = function(hasSetter, fileName, type, name)
+local createPropertyImplimentation = function(hasSetter, fileName, type, name, openImpl)
     local cwd = vim.fn.getcwd()
 
     local filePath = vim.fn.glob(cwd .. '/**/' .. fileName, true, false)
@@ -90,15 +101,20 @@ local createPropertyImplimentation = function(hasSetter, fileName, type, name)
         if file then
             local poropertyImplimentation = '\n' .. type .. ' ' .. className .. '::' .. name .. '() const\n{\n    return m_' .. name .. ';\n}'
             if hasSetter then
+                local setterParam
+                if isPrimitiveType(type) then
+                    setterParam = type .. ' new' .. capitalName
+                else
+                    setterParam = 'const ' .. type .. '& new' .. capitalName
+                end
+
                 poropertyImplimentation = poropertyImplimentation
                     .. '\n\nvoid '
                     .. className
                     .. '::set'
                     .. capitalName
-                    .. '(const '
-                    .. type
-                    .. '& new'
-                    .. capitalName
+                    .. '('
+                    .. setterParam
                     .. ')\n{\n    if(m_'
                     .. name
                     .. ' == new'
@@ -114,7 +130,9 @@ local createPropertyImplimentation = function(hasSetter, fileName, type, name)
             end
             file:write(poropertyImplimentation)
             file:close()
-            vim.cmd.edit(filePath)
+            if openImpl then
+                vim.cmd.edit(filePath)
+            end
         else
             print('❌ Failed to open file: ' .. filePath)
         end
@@ -184,7 +202,7 @@ local createQproperty = function()
             prompt = prompt .. 'in ' .. fileName .. '? [Y]es/[N]o: '
             vim.ui.input({ prompt = prompt }, function(second_answer)
                 if second_answer == 'Y' or second_answer == 'y' then
-                    createPropertyImplimentation(hasSetter, fileName, type, name)
+                    createPropertyImplimentation(hasSetter, fileName, type, name, true)
                 else
                     return
                 end
@@ -193,4 +211,50 @@ local createQproperty = function()
     end)
 end
 
+local createQpropertySimple = function()
+    local mode = vim.fn.mode()
+    if mode ~= 'v' and mode ~= 'V' and mode ~= '\22' then
+        print('not v')
+        return
+    end
+
+    local _, csrow, cscol, _ = unpack(vim.fn.getpos('v'))
+    local _, cerow, cecol, _ = unpack(vim.fn.getpos('.'))
+
+    -- Ensure correct order
+    if csrow > cerow or (csrow == cerow and cscol > cecol) then
+        csrow, cerow = cerow, csrow
+        cscol, cecol = cecol, cscol
+    end
+
+    local lines = vim.fn.getline(csrow, cerow)
+    if #lines == 0 then
+        print('empty lines')
+        return
+    end
+
+    -- Trim
+    lines[1] = string.sub(lines[1], cscol)
+    if #lines > 1 then
+        lines[#lines] = string.sub(lines[#lines], 1, cecol)
+    end
+
+    local selection = table.concat(lines, ' ')
+    local type, name = selection:match('^(%S+)%s+(%S+)$')
+    if not type or not name then
+        print("❌ Could not parse 'type name' from selection")
+        return
+    end
+
+    -- Insert property + setter by default
+    insertLines(name, type, true, true)
+
+    -- Add implementation automatically
+    local fileName = vim.fn.expand('%:t')
+    fileName = fileName:gsub('%.h$', '.cpp')
+    createPropertyImplimentation(true, fileName, type, name, false)
+end
+
 vim.keymap.set('v', '<leader>cp', createQproperty, { desc = 'Create Q_Property', noremap = true })
+
+vim.keymap.set('v', '<leader>CP', createQpropertySimple, { desc = 'Create Q_Property (auto)', noremap = true })

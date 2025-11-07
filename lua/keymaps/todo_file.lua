@@ -1,0 +1,5 @@
+-- vim.keymap.set('n', '<leader>ct', function()
+--     local tasks_file = vim.fn.getcwd() .. '/notes.md'
+--     vim.cmd('edit ' .. tasks_file)
+-- end, { desc = 'Open notes.md for current project' })
+--

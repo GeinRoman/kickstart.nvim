@@ -1,6 +1,6 @@
 return {
     'stevearc/oil.nvim',
-    dependencies = { 'echasnovski/mini.icons' },
+    dependencies = { 'nvim-tree/nvim-web-devicons', 'echasnovski/mini.icons' },
     config = function()
         require('oil').setup({
             use_default_keymaps = false,

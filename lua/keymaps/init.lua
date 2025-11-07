@@ -1,4 +1,8 @@
+require('keymaps.basic_keymaps')
+require('keymaps.custom_substitutes')
 require('keymaps.q_property')
 require('keymaps.cpp_swap')
 require('keymaps.qt_qrc')
 require('keymaps.cpp_swap')
+require('keymaps.camel_case_line')
+-- require('keymaps.todo_file')
