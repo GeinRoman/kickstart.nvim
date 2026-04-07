@@ -15,8 +15,8 @@ return {
 
         require('mini.comment').setup({
             mappings = {
-                comment_visual = '<C-_>',
-                comment_line = '<C-_>',
+                comment_visual = '<C-/>',
+                comment_line = '<C-/>',
             },
         })
         -- Add/delete/replace surroundings (brackets, quotes, etc.)

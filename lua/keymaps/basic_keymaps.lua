@@ -72,3 +72,8 @@ vim.keymap.set('n', '<M-_>', ':vertical resize -2<CR>', { silent = true })
 --quickfix list navigation
 vim.keymap.set('n', '<M-s>', '<Cmd>cprev<CR>', { desc = 'prev in quickfix list' })
 vim.keymap.set('n', '<M-d>', '<Cmd>cnext<CR>', { desc = 'next in quickfix list' })
+
+-- toggle wrap mode
+vim.keymap.set('n', '<leader>tw', function ()
+    vim.o.wrap = not vim.o.wrap
+end, {desc = 'toggle text wrap mode'} )
